@@ -8,8 +8,6 @@ using Prism.Commands;
 using JigsawWpfApp.Configs;
 using JigsawWpfApp.Games;
 
-using MahApps.Metro;
-using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Media.Imaging;
 using JigsawWpfApp.Views;
 
