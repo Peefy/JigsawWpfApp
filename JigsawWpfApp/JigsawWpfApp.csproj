@@ -68,8 +68,12 @@
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="Communications\SerialPortBuilder.cs" />
     <Compile Include="Configs\Config.cs" />
+    <Compile Include="Games\ComPacket.cs" />
+    <Compile Include="Games\GameComEventArgs.cs" />
     <Compile Include="Games\GameController.cs" />
+    <Compile Include="Games\GameStatus.cs" />
     <Compile Include="Games\KeyValue.cs" />
+    <Compile Include="Games\MsgType.cs" />
     <Compile Include="Games\PuzzleForImage.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
