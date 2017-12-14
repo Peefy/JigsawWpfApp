@@ -1,0 +1,47 @@
+﻿<Controls:MetroWindow x:Class="JigsawWpfApp.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:prism="http://prismlibrary.com/"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        Title="{Binding Config.MainWindowName}" Height="720" Width="600"
+        BorderThickness="1" 
+        GlowBrush="Black"
+        ResizeMode="CanResizeWithGrip"
+        WindowTransitionsEnabled="False"
+        WindowStartupLocation="CenterScreen"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <ContentControl prism:RegionManager.RegionName="ContentRegion" />
+        <Button Grid.Row="0" Command="{Binding OpenSerialPortCommand}"
+                Content="{Binding Config.OpenPortBtnText}"
+                FontSize="17"
+                Background="Gold">
+        </Button>
+        <Button Grid.Row="1" Command="{Binding OpenPictureCommand}"
+                Content="{Binding Config.OpenPicBtnText}"
+                FontSize="17"
+                Background="Red">
+        </Button>
+        <Grid Grid.Row="2"
+              x:Name="GridImage" Background="#EEEEEE">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+        <Label Grid.Row="3" FontSize="14" VerticalAlignment="Center" 
+               HorizontalAlignment="Left" Content="{Binding StatusText}"></Label>
+    </Grid>
+</Controls:MetroWindow>
