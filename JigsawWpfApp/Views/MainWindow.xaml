@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:prism="http://prismlibrary.com/"
         prism:ViewModelLocator.AutoWireViewModel="True"
-        Title="{Binding Config.MainWindowName}" Height="720" Width="600"
+        Title="{Binding Config.MainWindowName}" Height="470" Width="350"
         BorderThickness="1" 
         GlowBrush="Black"
         ResizeMode="CanResizeWithGrip"

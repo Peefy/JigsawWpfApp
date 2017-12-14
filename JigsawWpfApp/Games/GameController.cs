@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.IO.Ports;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,10 @@ namespace JigsawWpfApp.Games
     public class GameController
     {
         private SerialPort _serialPort;
+        private Thread _sendGameStatusThread;
+        private int _packetLength = 3;
+        
+        public GameStatus GameStatus { get; set; } = GameStatus.Idle;
 
         public GameController()
         {
@@ -22,7 +27,7 @@ namespace JigsawWpfApp.Games
             _serialPort.DataReceived += _serialPort_DataReceived;
             try
             {
-                _serialPort.Open();
+                OpenPort();
             }
             catch (Exception ex)
             {
@@ -30,17 +35,51 @@ namespace JigsawWpfApp.Games
             }
 
         }
-
-        public event EventHandler<EventArgs> GameCommandRecieved;
+        public delegate void GameComEventArgsEventHandler(object sender, GameComEventArgs e);
+        public event GameComEventArgsEventHandler GameCommandRecieved;
 
         public void OpenPort()
         {
             _serialPort?.Open();
+            if(_sendGameStatusThread != null)
+            {
+                _sendGameStatusThread = new Thread(new ThreadStart(() =>
+                {
+                    try
+                    {
+                        if(_serialPort?.IsOpen == true)
+                        {
+                            byte[] data =
+                            {
+                                ComPacket.Header,
+                                (byte)GameStatus,
+                            };
+                            _serialPort.Write(data, 0, data.Length);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }));
+                _sendGameStatusThread.Start();
+            }
         }
 
         private void _serialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            
+            byte[] buffers = new byte[_packetLength];
+            var bytes = _serialPort.Read(buffers, 0, _packetLength);
+            var comPacket = new ComPacket();
+            if(buffers[0] == ComPacket.Header)
+            {
+                comPacket.MsgType = (MsgType)buffers[1];
+                comPacket.KeyValue = (KeyValue)buffers[2];
+                GameCommandRecieved?.Invoke(_serialPort, new GameComEventArgs()
+                {
+                    ComPacket = comPacket
+                });
+            }
         }
     }
 }

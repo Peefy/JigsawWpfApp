@@ -18,14 +18,16 @@ namespace JigsawWpfApp.ViewModels
 
         public Config Config { get; set; }
 
-        private GameController _gameController;
-
         private string _statusText = "";
         public string StatusText
         {
             get => "游戏状态：" + _statusText;
             set => SetProperty(ref _statusText, value);
         }
+
+        GameController _gameController;
+        PuzzleForImage _puzzle;
+        BitmapImage _image;
 
         public MainWindowViewModel()
         {
@@ -43,6 +45,7 @@ namespace JigsawWpfApp.ViewModels
                 try
                 {
                     _gameController.OpenPort();
+                    _gameController.GameCommandRecieved += _gameController_GameCommandRecieved;
                 }
                 catch (Exception ex)
                 {
@@ -61,17 +64,11 @@ namespace JigsawWpfApp.ViewModels
                     try
                     {
 
-                        BitmapImage image = new BitmapImage(
+                        _image = new BitmapImage(
                             new Uri(ofd.FileName, UriKind.RelativeOrAbsolute));
-                        PuzzleForImage puzzle = new PuzzleForImage(image);//创建拼图
-                        #region 设置宽高
-                        /*------------------------------------------------------------------
-                         *如果选择的图片宽高比例比屏幕的宽高比例大，则窗体和图片区域宽度采用600，高度等比缩放
-                         * 反之，图片区域高度采用600，宽度等比算出，但是窗体宽度就不等比缩放了（照顾button）
-                         ------------------------------------------------------------------*/
-                        #endregion
+                        _puzzle = new PuzzleForImage(_image,3);//创建拼图
                         var mainWindow = App.Current.MainWindow as MainWindow;
-                        puzzle.SetGrid(mainWindow.GridImage);
+                        _puzzle.SetGrid(mainWindow.GridImage);
                         //这里写创建拼图的代码 
                     }
                     catch(Exception ex)
@@ -81,6 +78,15 @@ namespace JigsawWpfApp.ViewModels
                 }
                 
             });
+        }
+
+        private void _gameController_GameCommandRecieved(object sender, GameComEventArgs e)
+        {
+            var comPacket = e.ComPacket;
+            if(comPacket.MsgType == MsgType.Move)
+            {
+                _puzzle.DoMove(comPacket.KeyValue);
+            }
         }
 
         public DelegateCommand OpenSerialPortCommand { get; set; }

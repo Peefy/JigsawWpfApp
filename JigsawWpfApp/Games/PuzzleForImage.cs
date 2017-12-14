@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,25 +15,29 @@ namespace JigsawWpfApp.Games
 {
     /// <summary>
     /// 拼图生成类
-    /// 传入一张图片 生成一个9*9的图片集合
+    /// 传入一张图片 生成一个GameNum * GameNum的图片集合
     /// </summary>
     public class PuzzleForImage
     {
 
-        public static int GameNum = 3;
+        public static int GameNum = 3;                                          //原图片
+        public List<Rectangle> initialUnallocatedParts = new List<Rectangle>(); //要返回拼图集合
+        public List<Rectangle> allocatedParts = new List<Rectangle>();          //被打乱后的图片
 
-        BitmapImage _image;                                         //原图片
-        List<Rectangle> initialUnallocatedParts = new List<Rectangle>();//要返回拼图集合
-        public List<Rectangle> allocatedParts = new List<Rectangle>();         //被打乱后的图片
-        int[] map = new int[GameNum * GameNum];                                                //游戏地图 判断是否成功
+        Grid _gridImg;
+        BitmapImage _image;
+        int[] map;                                               
+        //游戏地图 判断是否成功
 
         /// <summary>
         /// 新建对象时传入原图片
         /// </summary>
         /// <param name="image"></param>
-        public PuzzleForImage(BitmapImage image)
+        public PuzzleForImage(BitmapImage image,int gameNum)
         {
+            GameNum = gameNum;
             _image = image;
+            map = new int[GameNum * GameNum];
             CreatePuzzleForImage();
         }
 
@@ -42,6 +47,14 @@ namespace JigsawWpfApp.Games
         /// <param name="GridImg"></param>
         public void SetGrid(Grid GridImg)
         {
+            _gridImg = GridImg;
+            GridImg.RowDefinitions.Clear();
+            GridImg.ColumnDefinitions.Clear();
+            for(var i = 0;i < GameNum ;++i)
+            {
+                GridImg.RowDefinitions.Add(new RowDefinition());
+                GridImg.ColumnDefinitions.Add(new ColumnDefinition());
+            }
             GridImg.Children.Clear();
             GridImg.Height = _image.Height / _image.Width * GridImg.Width;
             int index = 0;
@@ -55,41 +68,137 @@ namespace JigsawWpfApp.Games
                     index++;
                 }
             }
+            Application.Current.MainWindow.KeyDown -= MainWindow_KeyDown;
             Application.Current.MainWindow.KeyDown += MainWindow_KeyDown;
+            UpSet(); //打乱拼图
+            
         }
 
-        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        private void UpSet()
+        {
+            for (var i = 0; i < 200000; ++i)
+            {
+                Random rand = new Random();
+                var dir = (int)(rand.NextDouble() * 4) + 1;
+                DoMove((KeyValue)(dir + 0x40), false);
+            }
+            int sum = 100000;
+            if (GameNum == 3)
+                sum = 10000;
+            Random ran = new Random();
+            var N = GameNum;
+            for (int i = 0, x = N - 1, y = N - 1; i < sum; i++)
+            {
+                long tick = DateTime.Now.Ticks;
+                ran = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32) | ran.Next());
+                switch (ran.Next(0, 4))
+                {
+                    case 0:
+                        if (x + 1 != N)
+                        {
+                            DoMove(KeyValue.Down,false);
+                            x = x + 1;
+                        }
+
+                        break;
+                    case 1:
+                        if (y + 1 != N)
+                        {
+                            DoMove(KeyValue.Right,false);
+                            y = y + 1;
+                        }
+                        break;
+                    case 2:
+                        if (x - 1 != -1)
+                        {
+                            DoMove(KeyValue.Up,false);
+                            x = x - 1;
+                        }
+                        break;
+                    case 3:
+                        if (y - 1 != -1)
+                        {
+                            DoMove(KeyValue.Left,false);
+                            y = y - 1;
+                        }
+                        break;
+                }
+            }
+        }
+
+        public void DoMove(KeyValue keyValue, bool isJudge = true)
         {
             Rectangle rectBlank = allocatedParts[allocatedParts.Count - 1];   //缺省方块
             int currentBlankRow = (int)rectBlank.GetValue(Grid.RowProperty);
             int currentBlankCol = (int)rectBlank.GetValue(Grid.ColumnProperty);
+            
             int nowRow = currentBlankRow;
             int nowCol = currentBlankCol;
-            if (e.Key == Key.S)
+            if (keyValue == KeyValue.Up)
             {
-                nowRow = nowRow - 1;
+                nowCol = currentBlankCol;
+                nowRow = currentBlankRow + 1;
             }
-            else if(e.Key == Key.W)
+            else if (keyValue == KeyValue.Down)
             {
-                nowRow = nowRow + 1;
+                nowCol = currentBlankCol;
+                nowRow = currentBlankRow - 1;
             }
-            else if(e.Key == Key.D)
+            else if (keyValue == KeyValue.Left)
             {
-                nowCol = nowCol - 1;
+                nowRow = currentBlankRow;
+                nowCol = currentBlankCol - 1;
             }
-            else if(e.Key == Key.A)
+            else if (keyValue == KeyValue.Right)
             {
-                nowCol = nowCol + 1;
+                nowRow = currentBlankRow;
+                nowCol = currentBlankCol + 1;
             }
             try
             {
-                RectPart_MouseDown(allocatedParts[nowRow * GameNum + nowCol], null);
-
+                foreach (var child in _gridImg.Children)
+                {
+                    if (child is Rectangle rec)
+                    {
+                        int row = (int)rec.GetValue(Grid.RowProperty);
+                        int col = (int)rec.GetValue(Grid.ColumnProperty);
+                        if (row == nowRow && col == nowCol)
+                        {
+                            RectPart_MouseDown(rec, null);
+                            if (isJudge == true && IsSuccess())
+                            {
+                                MessageBox.Show("成功了，好棒啊！");
+                            }
+                            break;
+                        }
+                    }
+                }
+                //判断是否成功               
             }
             catch
             {
 
             }
+        }
+
+        public void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {           
+            if (e.Key == Key.W)
+            {
+                DoMove(KeyValue.Up);
+            }
+            else if(e.Key == Key.S)
+            {
+                DoMove(KeyValue.Down);
+            }
+            else if(e.Key == Key.D)
+            {
+                DoMove(KeyValue.Left);
+            }
+            else if(e.Key == Key.A)
+            {
+                DoMove(KeyValue.Right);
+            }           
         }
 
         /// <summary>
@@ -119,7 +228,7 @@ namespace JigsawWpfApp.Games
             #endregion
 
             //随机排列
-            RandomizeTiles();
+            InitAllocParts();
 
             //创建白色方块
             CreateBlankRect();
@@ -143,7 +252,6 @@ namespace JigsawWpfApp.Games
             ib.ViewboxUnits = BrushMappingMode.RelativeToBoundingBox; //按百分比设置宽高
             ib.TileMode = TileMode.None;                          //按百分比应该不会出现 image小于要切的值的情况
             #endregion
-
             #region 定义矩形
             Rectangle rectPart = new Rectangle();
             rectPart.Fill = ib;
@@ -155,26 +263,12 @@ namespace JigsawWpfApp.Games
             initialUnallocatedParts.Add(rectPart);                                         //将矩形添加到拼图集合
         }
 
-        /// <summary>
-        /// 将 图片打乱
-        /// </summary>
-        private void RandomizeTiles()
+        private void InitAllocParts()
         {
-            Random rand = new Random();
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < GameNum * GameNum - 1; i++)
             {
-                int index = 0;
-                //if (initialUnallocatedParts.Count > 1)
-                //{
-                //    index = (int)(rand.NextDouble() * initialUnallocatedParts.Count);
-                //}
-                index = (int)(rand.NextDouble() * initialUnallocatedParts.Count);
-                while (initialUnallocatedParts[index] == null)
-                {
-                    index = (int)(rand.NextDouble() * initialUnallocatedParts.Count);
-                }
+                int index = i;
                 allocatedParts.Add(initialUnallocatedParts[index]);
-                //initialUnallocatedParts.RemoveAt(index); // 移除图片
                 initialUnallocatedParts[index] = null;
                 map[i] = index;                          // 添加地图
             }
@@ -205,7 +299,7 @@ namespace JigsawWpfApp.Games
             //different Gri Row/Column
             Rectangle rectCurrent = sender as Rectangle;                        //当前方块
             Rectangle rectBlank = allocatedParts[allocatedParts.Count - 1];   //缺省方块
-
+            //var index = allocatedParts.IndexOf(rectCurrent);
             //得到白块和缺省方块的位置
             int currentTileRow = (int)rectCurrent.GetValue(Grid.RowProperty);
             int currentTileCol = (int)rectCurrent.GetValue(Grid.ColumnProperty);
@@ -236,27 +330,22 @@ namespace JigsawWpfApp.Games
                 rectBlank.SetValue(Grid.ColumnProperty, currentTileCol);
 
                 //更新地图
-                int indexCur = currentTileRow * 3 + currentTileCol;
-                int indexBlank = currentBlankRow * 3 + currentBlankCol;
+                int indexCur = currentTileRow * GameNum + currentTileCol;
+                int indexBlank = currentBlankRow * GameNum + currentBlankCol;
                 int temp = map[indexCur];
                 map[indexCur] = map[indexBlank];
                 map[indexBlank] = temp;
 
-                //判断是否成功
-                if (isSuccess())
-                {
-                    MessageBox.Show("成功了，好棒啊！");
-                }
-            }
+            }          
         }
 
         /// <summary>
         /// 验证是否游戏成功
         /// </summary>
         /// <returns></returns>
-        private bool isSuccess()
+        public bool IsSuccess()
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < GameNum * GameNum; i++)
             {
                 if (map[i] != i)
                 {

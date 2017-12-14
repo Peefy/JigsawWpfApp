@@ -68,6 +68,7 @@ namespace JigsawWpfApp.Configs
         public Config()
         {
             Childrens = new List<SerialPortBuilder>();
+            Childrens.Clear();
             Childrens.Add(new SerialPortBuilder());
             Childrens.Add(new SerialPortBuilder());
         }
