@@ -39,14 +39,12 @@ namespace JigsawWpfApp.Configs
             set => SetProperty(ref _openPortBtnText, value);
         }
 
-        private string _openPicBtnText = "选择图片";
+        private string _openPicBtnText = "开始游戏";
         public string OpenPicBtnText
         {
             get => _openPicBtnText;
             set => SetProperty(ref _openPicBtnText, value);
         }
-
-        public List<SerialPortBuilder> Childrens;
 
         [JsonIgnore]
         private static Lazy<Config> _instance;
@@ -67,10 +65,7 @@ namespace JigsawWpfApp.Configs
 
         public Config()
         {
-            Childrens = new List<SerialPortBuilder>();
-            Childrens.Clear();
-            Childrens.Add(new SerialPortBuilder());
-            Childrens.Add(new SerialPortBuilder());
+            
         }
 
         ~Config()

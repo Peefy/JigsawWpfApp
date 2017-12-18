@@ -5,6 +5,7 @@ using Autofac;
 using Prism.Autofac;
 
 using JigsawWpfApp.Configs;
+using JigsawWpfApp.ViewModels;
 
 namespace JigsawWpfApp
 {

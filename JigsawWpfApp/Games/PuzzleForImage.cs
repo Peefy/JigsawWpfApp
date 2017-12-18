@@ -17,12 +17,12 @@ namespace JigsawWpfApp.Games
     /// 拼图生成类
     /// 传入一张图片 生成一个GameNum * GameNum的图片集合
     /// </summary>
-    public class PuzzleForImage
+    public class PuzzleForImage : IDisposable
     {
 
         public static int GameNum = 3;                                          //原图片
-        public List<Rectangle> initialUnallocatedParts = new List<Rectangle>(); //要返回拼图集合
-        public List<Rectangle> allocatedParts = new List<Rectangle>();          //被打乱后的图片
+        public List<Rectangle> initialUnallocatedParts;// = new List<Rectangle>(); //要返回拼图集合
+        public List<Rectangle> allocatedParts;// = new List<Rectangle>();          //被打乱后的图片
 
         Grid _gridImg;
         BitmapImage _image;
@@ -38,6 +38,8 @@ namespace JigsawWpfApp.Games
             GameNum = gameNum;
             _image = image;
             map = new int[GameNum * GameNum];
+            initialUnallocatedParts = new List<Rectangle>();
+            allocatedParts = new List<Rectangle>();
             CreatePuzzleForImage();
         }
 
@@ -76,57 +78,34 @@ namespace JigsawWpfApp.Games
 
         private void UpSet()
         {
-            for (var i = 0; i < 200000; ++i)
-            {
-                Random rand = new Random();
-                var dir = (int)(rand.NextDouble() * 4) + 1;
-                DoMove((KeyValue)(dir + 0x40), false);
-            }
-            int sum = 100000;
+            int sum = 5000;
             if (GameNum == 3)
-                sum = 10000;
+                sum = 1000;
             Random ran = new Random();
             var N = GameNum;
-            for (int i = 0, x = N - 1, y = N - 1; i < sum; i++)
+            for (int i = 0; i < sum; i++)
             {
                 long tick = DateTime.Now.Ticks;
                 ran = new Random((int)(tick & 0xffffffffL) | (int)(tick >> 32) | ran.Next());
                 switch (ran.Next(0, 4))
                 {
                     case 0:
-                        if (x + 1 != N)
-                        {
                             DoMove(KeyValue.Down,false);
-                            x = x + 1;
-                        }
-
                         break;
                     case 1:
-                        if (y + 1 != N)
-                        {
                             DoMove(KeyValue.Right,false);
-                            y = y + 1;
-                        }
                         break;
                     case 2:
-                        if (x - 1 != -1)
-                        {
                             DoMove(KeyValue.Up,false);
-                            x = x - 1;
-                        }
                         break;
                     case 3:
-                        if (y - 1 != -1)
-                        {
                             DoMove(KeyValue.Left,false);
-                            y = y - 1;
-                        }
                         break;
                 }
             }
         }
 
-        public void DoMove(KeyValue keyValue, bool isJudge = true)
+        public bool DoMove(KeyValue keyValue, bool isJudge = true)
         {
             Rectangle rectBlank = allocatedParts[allocatedParts.Count - 1];   //缺省方块
             int currentBlankRow = (int)rectBlank.GetValue(Grid.RowProperty);
@@ -167,9 +146,9 @@ namespace JigsawWpfApp.Games
                             RectPart_MouseDown(rec, null);
                             if (isJudge == true && IsSuccess())
                             {
-                                MessageBox.Show("成功了，好棒啊！");
+                                return true;
                             }
-                            break;
+
                         }
                     }
                 }
@@ -177,8 +156,9 @@ namespace JigsawWpfApp.Games
             }
             catch
             {
-
+                return false;
             }
+            return false;
         }
 
         public void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -353,6 +333,15 @@ namespace JigsawWpfApp.Games
                 }
             }
             return true;
+        }
+
+        public void Dispose()
+        {
+            initialUnallocatedParts.Clear();
+            initialUnallocatedParts = null;
+
+            _gridImg = null;
+            _image = null;
         }
     }
 

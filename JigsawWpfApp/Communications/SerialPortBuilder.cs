@@ -31,7 +31,7 @@ namespace JigsawWpfApp.Communications
             }
         }
 
-        public string ComText { get; set; } = "COM8";
+        public string ComText { get; set; } = "COM4";
 
         public void SaveToJsonFile()
         {
