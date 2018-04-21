@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,20 +16,20 @@ namespace JigsawWpfApp.Games
     public class PuzzleForImage : IDisposable
     {
 
-        public static int GameNum = 3;                                          //原图片
-        public List<Rectangle> initialUnallocatedParts;// = new List<Rectangle>(); //要返回拼图集合
-        public List<Rectangle> allocatedParts;// = new List<Rectangle>();          //被打乱后的图片
+        public static int GameNum = 3;
+        public List<Rectangle> initialUnallocatedParts;//要返回拼图集合
+        public List<Rectangle> allocatedParts; //被打乱后的图片
 
         Grid _gridImg;
         BitmapImage _image;
-        int[] map;                                               
+        int[] map;
         //游戏地图 判断是否成功
 
         /// <summary>
         /// 新建对象时传入原图片
         /// </summary>
         /// <param name="image"></param>
-        public PuzzleForImage(BitmapImage image,int gameNum)
+        public PuzzleForImage(BitmapImage image, int gameNum)
         {
             GameNum = gameNum;
             _image = image;
@@ -52,7 +48,7 @@ namespace JigsawWpfApp.Games
             _gridImg = GridImg;
             GridImg.RowDefinitions.Clear();
             GridImg.ColumnDefinitions.Clear();
-            for(var i = 0;i < GameNum ;++i)
+            for (var i = 0; i < GameNum; ++i)
             {
                 GridImg.RowDefinitions.Add(new RowDefinition());
                 GridImg.ColumnDefinitions.Add(new ColumnDefinition());
@@ -73,7 +69,7 @@ namespace JigsawWpfApp.Games
             Application.Current.MainWindow.KeyDown -= MainWindow_KeyDown;
             Application.Current.MainWindow.KeyDown += MainWindow_KeyDown;
             UpSet(); //打乱拼图
-            
+
         }
 
         private void UpSet()
@@ -90,16 +86,16 @@ namespace JigsawWpfApp.Games
                 switch (ran.Next(0, 4))
                 {
                     case 0:
-                            DoMove(KeyValue.Down,false);
+                        DoMove(KeyValue.Down, false);
                         break;
                     case 1:
-                            DoMove(KeyValue.Right,false);
+                        DoMove(KeyValue.Right, false);
                         break;
                     case 2:
-                            DoMove(KeyValue.Up,false);
+                        DoMove(KeyValue.Up, false);
                         break;
                     case 3:
-                            DoMove(KeyValue.Left,false);
+                        DoMove(KeyValue.Left, false);
                         break;
                 }
             }
@@ -110,7 +106,7 @@ namespace JigsawWpfApp.Games
             Rectangle rectBlank = allocatedParts[allocatedParts.Count - 1];   //缺省方块
             int currentBlankRow = (int)rectBlank.GetValue(Grid.RowProperty);
             int currentBlankCol = (int)rectBlank.GetValue(Grid.ColumnProperty);
-            
+
             int nowRow = currentBlankRow;
             int nowCol = currentBlankCol;
             if (keyValue == KeyValue.Up)
@@ -162,23 +158,23 @@ namespace JigsawWpfApp.Games
         }
 
         public void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {           
+        {
             if (e.Key == Key.W)
             {
                 DoMove(KeyValue.Up);
             }
-            else if(e.Key == Key.S)
+            else if (e.Key == Key.S)
             {
                 DoMove(KeyValue.Down);
             }
-            else if(e.Key == Key.D)
+            else if (e.Key == Key.D)
             {
                 DoMove(KeyValue.Left);
             }
-            else if(e.Key == Key.A)
+            else if (e.Key == Key.A)
             {
                 DoMove(KeyValue.Right);
-            }           
+            }
         }
 
         /// <summary>
@@ -316,7 +312,7 @@ namespace JigsawWpfApp.Games
                 map[indexCur] = map[indexBlank];
                 map[indexBlank] = temp;
 
-            }          
+            }
         }
 
         /// <summary>

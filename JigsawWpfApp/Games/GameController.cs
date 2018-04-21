@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Threading;
+using System.Windows.Threading;
 using System.IO.Ports;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 using JigsawWpfApp.Communications;
-using System.Windows.Threading;
 
 namespace JigsawWpfApp.Games
 {
@@ -33,7 +31,7 @@ namespace JigsawWpfApp.Games
             Buffers = new Queue<byte>();
             string[] ports = SerialPort.GetPortNames();
             Array.Sort(ports);
-            if(ports.Length >= 2)
+            if (ports.Length >= 2)
             {
                 _serialPort.PortName = ports[1];
                 _serialPort.DataReceived += _serialPort_DataReceived;
@@ -47,9 +45,9 @@ namespace JigsawWpfApp.Games
             {
                 OpenPort();
             }
-            catch 
+            catch
             {
-                
+
             }
 
         }
@@ -74,7 +72,7 @@ namespace JigsawWpfApp.Games
                                 };
                             _serialPort.Write(data, 0, data.Length);
                         }
-                        if(Buffers.Count >= PacketLength)
+                        if (Buffers.Count >= PacketLength)
                         {
                             var comPacket = new ComPacket();
                             if (Buffers.Dequeue() == ComPacket.Header)
@@ -116,7 +114,7 @@ namespace JigsawWpfApp.Games
 
         public int KeyValueToGameNum(KeyValue keyValue)
         {
-            var gameNum = ((int)keyValue - (int)KeyValue.A) + 
+            var gameNum = ((int)keyValue - (int)KeyValue.A) +
                 ((int)KeyValue.D - (int)KeyValue.A);
             return (gameNum <= 3) ? 3 : gameNum;
         }
@@ -137,12 +135,12 @@ namespace JigsawWpfApp.Games
                 {
                     // TODO: 释放托管状态(托管对象)。
                 }
-                if(_sendGameStatusThread != null)
+                if (_sendGameStatusThread != null)
                 {
                     _sendGameStatusThread.Abort();
                     _sendGameStatusThread = null;
                 }
-                if(_serialPort != null)
+                if (_serialPort != null)
                 {
                     _serialPort.DataReceived -= _serialPort_DataReceived;
                     _serialPort.Dispose();
